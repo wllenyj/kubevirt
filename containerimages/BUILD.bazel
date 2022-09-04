@@ -65,23 +65,23 @@ container_image(
     visibility = ["//visibility:public"],
 )
 
-pkg_tar(
-    name = "virtio-image-tar",
-    srcs = ["@virtio_win_image//file"],
-    mode = "440",
-    owner = "107.107",
-    package_dir = "/disk",
-)
+#pkg_tar(
+#    name = "virtio-image-tar",
+#    srcs = ["@virtio_win_image//file"],
+#    mode = "440",
+#    owner = "107.107",
+#    package_dir = "/disk",
+#)
 
-container_image(
-    name = "virtio-container-disk-image",
-    architecture = select({
-        "@io_bazel_rules_go//go/platform:linux_arm64": "arm64",
-        "//conditions:default": "amd64",
-    }),
-    tars = [":virtio-image-tar"],
-    visibility = ["//visibility:public"],
-)
+#container_image(
+#    name = "virtio-container-disk-image",
+#    architecture = select({
+#        "@io_bazel_rules_go//go/platform:linux_arm64": "arm64",
+#        "//conditions:default": "amd64",
+#    }),
+#    tars = [":virtio-image-tar"],
+#    visibility = ["//visibility:public"],
+#)
 
 container_image(
     name = "fedora-with-test-tooling",

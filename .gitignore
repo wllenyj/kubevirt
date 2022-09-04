@@ -32,7 +32,7 @@ cluster/local/certs
 *.csr
 _out
 exported-artifacts
-vendor/**/*_test.go
+vendor
 **/polarion.xml
 .coverprofile*
 coverage.html

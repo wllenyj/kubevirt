@@ -18,12 +18,13 @@ function up() {
 
     export API_HOST_IP=$(_main_ip)
     export KUBELET_HOST=$(_main_ip)
-    export HOSTNAME_OVERRIDE=kubdev
-    export ALLOW_PRIVILEGED=1
-    export ALLOW_SECURITY_CONTEXT=1
+    #export HOSTNAME_OVERRIDE=kubdev
+    export ALLOW_PRIVILEGED=true
+    #export DENY_SECURITY_CONTEXT_ADMISSION=true
     export KUBE_DNS_DOMAIN="cluster.local"
-    export KUBE_DNS_SERVER_IP="10.0.0.10"
+    export KUBE_DNS_SERVER_IP="10.88.0.10"
     export KUBE_ENABLE_CLUSTER_DNS=true
+    export CONTAINER_RUNTIME_ENDPOINT=unix:///home/wanglei01/dev/test/work/kube/containerd/containerd.sock
     export CERT_DIR=$(_cert_dir)
     (
         cd $GOPATH/src/k8s.io/kubernetes
