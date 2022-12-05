@@ -30,6 +30,10 @@ import (
 	cloudinit "kubevirt.io/kubevirt/pkg/cloud-init"
 	containerdisk "kubevirt.io/kubevirt/pkg/container-disk"
 	"kubevirt.io/kubevirt/pkg/emptydisk"
+	"kubevirt.io/kubevirt/pkg/util/hardware"
+	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/device/hostdevice"
+	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/device/hostdevice/generic"
+	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/device/hostdevice/gpu"
 	openapiClient "kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/openapi/cloud-hypervisor/client"
 )
 
@@ -248,6 +252,33 @@ func convertDomainSpecToVmConfig(vmi *v1.VirtualMachineInstance, vmConfig *opena
 	// Filesystems
 
 	// Host devices
+	var hostDevices []openapiClient.DeviceConfig
+	if devices.HostDevices != nil {
+		pciPool := hostdevice.NewBestEffortAddressPool(generic.NewPCIAddressPool(devices.HostDevices))
+		for _, dev := range devices.HostDevices {
+			address, err := pciPool.Pop(dev.DeviceName)
+			if err != nil {
+				log.Log.Object(vmi).Reason(err).Errorf("Failed to create host device: %s", dev.DeviceName)
+				continue
+			}
+			hostDevices = append(hostDevices, *openapiClient.NewDeviceConfig(hardware.GetPciDevicePath(address)))
+		}
+	}
+
+	if devices.GPUs != nil {
+		gpuPool := hostdevice.NewBestEffortAddressPool(gpu.NewPCIAddressPool(devices.GPUs))
+		for _, gpu := range devices.GPUs {
+			address, err := gpuPool.Pop(gpu.DeviceName)
+			if err != nil {
+				log.Log.Object(vmi).Reason(err).Errorf("Failed to create gpu devices: %s.", gpu.DeviceName)
+				continue
+			}
+			hostDevices = append(hostDevices, *openapiClient.NewDeviceConfig(hardware.GetPciDevicePath(address)))
+		}
+	}
+	if len(hostDevices) != 0 {
+		vmConfig.SetDevices(hostDevices)
+	}
 
 	/// End of Devices
 

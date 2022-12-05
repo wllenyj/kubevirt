@@ -34,6 +34,8 @@ import (
 
 const (
 	PCI_ADDRESS_PATTERN = `^([\da-fA-F]{4}):([\da-fA-F]{2}):([\da-fA-F]{2})\.([0-7]{1})$`
+
+	PCI_BASE_PATH = "/sys/bus/pci/devices"
 )
 
 // Parse linux cpuset into an array of ints
@@ -78,8 +80,8 @@ func safeAppend(cpusList []int, cpu int, limit int) ([]int, error) {
 	return append(cpusList, cpu), nil
 }
 
-//GetNumberOfVCPUs returns number of vCPUs
-//It counts sockets*cores*threads
+// GetNumberOfVCPUs returns number of vCPUs
+// It counts sockets*cores*threads
 func GetNumberOfVCPUs(cpuSpec *v1.CPU) int64 {
 	vCPUs := cpuSpec.Cores
 	if cpuSpec.Sockets != 0 {
@@ -112,9 +114,12 @@ func ParsePciAddress(pciAddress string) ([]string, error) {
 	return res[1:], nil
 }
 
+func GetPciDevicePath(pciAddress string) string {
+	return filepath.Join(PCI_BASE_PATH, pciAddress)
+}
+
 func GetDeviceNumaNode(pciAddress string) (*uint32, error) {
-	pciBasePath := "/sys/bus/pci/devices"
-	numaNodePath := filepath.Join(pciBasePath, pciAddress, "numa_node")
+	numaNodePath := filepath.Join(PCI_BASE_PATH, pciAddress, "numa_node")
 	// #nosec No risk for path injection. Reading static path of NUMA node info
 	numaNodeStr, err := os.ReadFile(numaNodePath)
 	if err != nil {

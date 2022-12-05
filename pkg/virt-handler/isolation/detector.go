@@ -131,7 +131,7 @@ func (s *socketBasedIsolationDetector) AdjustResources(vm *v1.VirtualMachineInst
 		}
 
 		// libvirtd process sets the memory lock limit before fork/exec-ing into qemu
-		if process.Executable() != "libvirtd" {
+		if process.Executable() != "cloud-hyperviso" {
 			continue
 		}
 
@@ -142,6 +142,8 @@ func (s *socketBasedIsolationDetector) AdjustResources(vm *v1.VirtualMachineInst
 		memlockSize.Add(*resource.NewScaledQuantity(vmiMemoryReq.ScaledValue(resource.Kilo), resource.Kilo))
 
 		err = setProcessMemoryLockRLimit(process.Pid(), memlockSize.Value())
+		log.Log.V(5).Object(vm).Infof("set process %+v memlock rlimits to %d",
+			process, memlockSize.Value())
 		if err != nil {
 			return fmt.Errorf("failed to set process %d memlock rlimit to %d: %v", process.Pid(), memlockSize.Value(), err)
 		}
