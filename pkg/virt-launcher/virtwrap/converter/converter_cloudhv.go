@@ -94,13 +94,26 @@ func convertDomainSpecToVmConfig(vmi *v1.VirtualMachineInstance, vmConfig *opena
 	if cpu != nil {
 		// Topology
 		topology := openapiClient.NewCpuTopology()
-		topology.SetCoresPerDie(int32(cpu.Cores))
-		topology.SetPackages(int32(cpu.Sockets))
-		topology.SetThreadsPerCore(int32(cpu.Threads))
+		if cpu.Cores != 0 {
+			topology.SetCoresPerDie(int32(cpu.Cores))
+		} else {
+			topology.SetCoresPerDie(int32(1))
+		}
+		if cpu.Sockets != 0 {
+			topology.SetPackages(int32(cpu.Sockets))
+		} else {
+			topology.SetPackages(int32(1))
+		}
+		if cpu.Threads != 0 {
+			topology.SetThreadsPerCore(int32(cpu.Threads))
+		} else {
+			topology.SetThreadsPerCore(int32(1))
+		}
 		topology.SetDiesPerPackage(1)
 		vmConfig.Cpus.SetTopology(*topology)
 
-		bootVcpus := int32(cpu.Cores * cpu.Sockets * cpu.Threads)
+		bootVcpus := int32(*topology.ThreadsPerCore * *topology.CoresPerDie * *topology.Packages)
+
 		vmConfig.Cpus.SetBootVcpus(bootVcpus)
 		if bootVcpus > vmConfig.Cpus.MaxVcpus {
 			vmConfig.Cpus.SetMaxVcpus(bootVcpus)
@@ -115,6 +128,7 @@ func convertDomainSpecToVmConfig(vmi *v1.VirtualMachineInstance, vmConfig *opena
 			}
 		}
 		vmConfig.Cpus.Features = features
+		log.Log.Object(vmi).Infof("Boot CPU: %#v, topology: %#v", *vmConfig.Cpus, *vmConfig.Cpus.Topology)
 	}
 
 	// Memory
