@@ -82,12 +82,12 @@ func newCloudHvDomainManager(apiSocketPath, ephemeralDiskDir, efiDir string, eph
 			},
 		},
 	}
-
+	firmware := filepath.Join(efiDir, "CLOUDHV.fd")
 	return &CloudHvDomainManager{
 		client: openapiClient.NewAPIClient(clientConfig).DefaultApi,
 		vmConfig: openapiClient.VmConfig{
-			Kernel: openapiClient.KernelConfig{
-				Path: filepath.Join(efiDir, "CLOUDHV.fd"),
+			Payload: openapiClient.PayloadConfig{
+				Firmware: &firmware,
 			},
 		},
 		ephemeralDiskCreator: ephemeralDiskCreator,

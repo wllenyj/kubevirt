@@ -177,25 +177,23 @@ func convertDomainSpecToVmConfig(vmi *v1.VirtualMachineInstance, vmConfig *opena
 
 			kernelBoot := firmware.KernelBoot
 
+			payload := openapiClient.NewPayloadConfig()
 			// Kernel boot parameters
-			vmConfig.SetCmdline(openapiClient.CmdLineConfig{
-				Args: kernelBoot.KernelArgs,
-			})
+			payload.SetCmdline(kernelBoot.KernelArgs)
 
 			container := kernelBoot.Container
 
 			// Kernel
 			if container.KernelPath != "" {
 				kernelPath := containerdisk.GetKernelBootArtifactPathFromLauncherView(container.KernelPath)
-				vmConfig.Kernel.SetPath(kernelPath)
+				payload.SetKernel(kernelPath)
 			}
 			// Initramfs
 			if container.InitrdPath != "" {
 				initrdPath := containerdisk.GetKernelBootArtifactPathFromLauncherView(container.InitrdPath)
-				vmConfig.SetInitramfs(openapiClient.InitramfsConfig{
-					Path: initrdPath,
-				})
+				payload.SetInitramfs(initrdPath)
 			}
+			vmConfig.SetPayload(*payload)
 		}
 	}
 
@@ -204,7 +202,7 @@ func convertDomainSpecToVmConfig(vmi *v1.VirtualMachineInstance, vmConfig *opena
 		features.Hyperv != nil &&
 		features.Hyperv.SyNIC != nil &&
 		features.Hyperv.SyNIC.Enabled != nil {
-		//vmConfig.Cpus.SetKvmHyperv(*features.Hyperv.SyNIC.Enabled)
+		vmConfig.Cpus.SetKvmHyperv(*features.Hyperv.SyNIC.Enabled)
 	}
 
 	/// Devices
